@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Koleksi Dr. Pinguin Bokep, M.S.B.</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Cloudflare Web Analytics -->
+  <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "8d0682575cf444238c8f952126ce0545"}'></script>
+  <!-- End Cloudflare Web Analytics -->
+  <!-- Vercel Web Analytics -->
+  <script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
+  <!-- End Vercel Web Analytics -->
+</head>
+<body class="bg-zinc-950 text-white">
+  <div class="max-w-7xl mx-auto px-6 py-8">
+    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
+      <div>
+        <h1 class="text-5xl font-bold tracking-tighter">Koleksi Dr. Pinguin Bokep, M.S.B.</h1>
+        <p class="text-zinc-400 mt-2">Ribuan Video • IndoAV &amp; UserBokep</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-2 text-sm">
+          <span id="total-videos">0</span> video
+        </div>
+      </div>
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-4 mb-8">
+      <div class="flex-1">
+        <input id="search" type="text" placeholder="Cari judul video..." 
+               class="w-full bg-zinc-900 border border-zinc-800 rounded-2xl px-6 py-3.5 text-lg focus:outline-none focus:border-emerald-600">
+      </div>
+
+      <div>
+        <select id="sort" onchange="applyFilters()" class="bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-3.5 text-white w-full lg:w-auto">
+          <option value="newest">Terbaru</option>
+          <option value="oldest">Terlama</option>
+          <option value="az">A - Z</option>
+          <option value="za">Z - A</option>
+        </select>
+      </div>
+
+      <div class="flex gap-2 flex-wrap">
+        <button data-category="all" onclick="filterByCategory('all')" class="category-btn active px-5 py-3 rounded-2xl bg-emerald-600 text-sm font-medium">Semua</button>
+        <button data-category="MILF" onclick="filterByCategory('MILF')" class="category-btn px-5 py-3 rounded-2xl bg-zinc-900 hover:bg-zinc-800 text-sm font-medium border border-zinc-700">MILF</button>
+        <button data-category="Amatir" onclick="filterByCategory('Amatir')" class="category-btn px-5 py-3 rounded-2xl bg-zinc-900 hover:bg-zinc-800 text-sm font-medium border border-zinc-700">Amatir</button>
+        <button data-category="Live" onclick="filterByCategory('Live')" class="category-btn px-5 py-3 rounded-2xl bg-zinc-900 hover:bg-zinc-800 text-sm font-medium border border-zinc-700">Live</button>
+        <button data-category="ABG" onclick="filterByCategory('ABG')" class="category-btn px-5 py-3 rounded-2xl bg-zinc-900 hover:bg-zinc-800 text-sm font-medium border border-zinc-700">ABG</button>
+      </div>
+    </div>
+
+    <div id="video-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5"></div>
+
+    <div class="flex flex-col sm:flex-row items-center justify-between mt-10 gap-4">
+      <div class="text-sm text-zinc-400" id="pagination-info"></div>
+      <div class="flex items-center gap-2" id="pagination-controls"></div>
+    </div>
+  </div>
+
+  <script>
+    let allVideos = [];
+    let filteredVideos = [];
+    let currentPage = 1;
+    const itemsPerPage = 12;
+    let currentCategory = 'all';
+
+    async function loadVideos() {
+      const res = await fetch('videos.json');
+      allVideos = await res.json();
+      filteredVideos = [...allVideos];
+      document.getElementById('total-videos').textContent = allVideos.length;
+      renderPage();
+    }
+
+    function filterByCategory(category) {
+      currentCategory = category;
+      currentPage = 1;
+      document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.classList.remove('active', 'bg-emerald-600');
+        btn.classList.add('bg-zinc-900', 'border', 'border-zinc-700');
+        if (btn.dataset.category === category) {
+          btn.classList.add('active', 'bg-emerald-600');
+          btn.classList.remove('bg-zinc-900', 'border', 'border-zinc-700');
+        }
+      });
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const searchTerm = document.getElementById('search').value.toLowerCase().trim();
+      const sortMode = document.getElementById('sort').value;
+
+      let temp = allVideos.filter(v => {
+        const matchSearch = v.title.toLowerCase().includes(searchTerm);
+        const matchCategory = currentCategory === 'all' || v.category === currentCategory;
+        return matchSearch && matchCategory;
+      });
+
+      if (sortMode === 'newest') {
+        temp.sort((a, b) => b.id - a.id);
+      } else if (sortMode === 'oldest') {
+        temp.sort((a, b) => a.id - b.id);
+      } else if (sortMode === 'az') {
+        temp.sort((a, b) => a.title.localeCompare(b.title));
+      } else if (sortMode === 'za') {
+        temp.sort((a, b) => b.title.localeCompare(a.title));
+      }
+
+      filteredVideos = temp;
+      currentPage = 1;
+      renderPage();
+    }
+
+    function renderPage() {
+      const grid = document.getElementById('video-grid');
+      grid.innerHTML = '';
+
+      const start = (currentPage - 1) * itemsPerPage;
+      const end = start + itemsPerPage;
+      const pageVideos = filteredVideos.slice(start, end);
+
+      if (pageVideos.length === 0) {
+        grid.innerHTML = `<div class="col-span-full text-center py-16 text-zinc-400">Tidak ada video yang cocok.</div>`;
+        updatePagination();
+        return;
+      }
+
+      pageVideos.forEach(video => {
+        const card = document.createElement('div');
+        card.className = `video-card bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden`;
+
+        card.innerHTML = `
+          <div class="px-4 pt-4 pb-3 flex items-center justify-between">
+            <span class="text-xs font-bold px-3 py-1 rounded-full bg-emerald-950 text-emerald-400">${video.source}</span>
+            <span class="text-xs text-zinc-500 font-mono">#${video.id}</span>
+          </div>
+
+          <div class="px-4 pb-3">
+            <div class="text-sm leading-snug text-zinc-200 line-clamp-3 min-h-[58px]">${video.title}</div>
+          </div>
+
+          <div class="relative aspect-video bg-black overflow-hidden">
+            <iframe 
+              src="${video.embed}" 
+              width="100%" 
+              height="100%" 
+              frameborder="0" 
+              allowfullscreen 
+              loading="lazy"
+              allow="autoplay; fullscreen; encrypted-media"
+              referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+          </div>
+
+          <div class="p-4">
+            <button onclick="event.stopImmediatePropagation(); window.open('${video.direct}', '_blank')" 
+                    class="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-sm font-semibold transition flex items-center justify-center gap-2">
+              <i class="fas fa-external-link-alt"></i>
+              <span>Buka &amp; Tonton Langsung</span>
+            </button>
+          </div>
+        `;
+
+        grid.appendChild(card);
+      });
+
+      updatePagination();
+    }
+
+    function updatePagination() {
+      const info = document.getElementById('pagination-info');
+      const controls = document.getElementById('pagination-controls');
+      controls.innerHTML = '';
+
+      const totalPages = Math.ceil(filteredVideos.length / itemsPerPage);
+      const start = (currentPage - 1) * itemsPerPage + 1;
+      const end = Math.min(currentPage * itemsPerPage, filteredVideos.length);
+
+      info.textContent = filteredVideos.length > 0 
+        ? `Menampilkan ${start}–${end} dari ${filteredVideos.length} video (Hal ${currentPage}/${totalPages})` 
+        : '';
+
+      if (totalPages <= 1) return;
+
+      const prev = document.createElement('button');
+      prev.innerHTML = `<i class="fas fa-chevron-left mr-1"></i> Prev`;
+      prev.className = `px-4 py-2 rounded-2xl border border-zinc-700 text-sm ${currentPage === 1 ? 'opacity-40' : 'hover:bg-zinc-900'}`;
+      prev.disabled = currentPage === 1;
+      prev.onclick = () => { currentPage--; renderPage(); };
+      controls.appendChild(prev);
+
+      const max = 5;
+      let startP = Math.max(1, currentPage - 2);
+      let endP = Math.min(totalPages, startP + max - 1);
+
+      for (let i = startP; i <= endP; i++) {
+        const btn = document.createElement('button');
+        btn.textContent = i;
+        btn.className = `px-4 py-2 rounded-2xl border text-sm ${i === currentPage ? 'bg-emerald-600 text-white border-emerald-600' : 'border-zinc-700 hover:bg-zinc-900'}`;
+        btn.onclick = () => { currentPage = i; renderPage(); };
+        controls.appendChild(btn);
+      }
+
+      const next = document.createElement('button');
+      next.innerHTML = `Next <i class="fas fa-chevron-right ml-1"></i>`;
+      next.className = `px-4 py-2 rounded-2xl border border-zinc-700 text-sm ${currentPage === totalPages ? 'opacity-40' : 'hover:bg-zinc-900'}`;
+      next.disabled = currentPage === totalPages;
+      next.onclick = () => { currentPage++; renderPage(); };
+      controls.appendChild(next);
+    }
+
+    document.getElementById('search').addEventListener('input', () => applyFilters());
+    document.getElementById('sort').addEventListener('change', () => applyFilters());
+
+    loadVideos();
+  </script>
+</body>
+</html>
