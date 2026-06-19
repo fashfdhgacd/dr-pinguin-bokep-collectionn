@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bulk Converter • Dr. Harimau Bokep</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Vercel Web Analytics -->
+  <script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
+  <!-- End Vercel Web Analytics -->
+</head>
+<body class="bg-zinc-950 text-white">
+  <div class="max-w-4xl mx-auto px-6 py-10">
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold">Bulk Video Converter</h1>
+      <p class="text-zinc-400 mt-2">Paste judul + link (format sederhana) → otomatis jadi JSON siap pakai</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Input -->
+      <div>
+        <label class="block text-sm font-medium text-zinc-400 mb-2">Input (Judul + Link bergantian)</label>
+        <textarea id="input" rows="16" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl p-4 font-mono text-sm" 
+          placeholder="Judul Video 1
+https://tv1.userbokep.com/e/xxxxxxxx
+
+Judul Video 2
+https://tv1.indoav.app/e/yyyyyyyy
+
+Judul Video 3
+https://tv1.userbokep.com/e/zzzzzzzz"></textarea>
+        
+        <div class="mt-3 flex gap-3">
+          <button onclick="convertToJSON()" 
+                  class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 rounded-2xl font-semibold flex items-center justify-center gap-2">
+            <i class="fas fa-magic"></i>
+            <span>Convert ke JSON</span>
+          </button>
+          <button onclick="clearAll()" 
+                  class="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-2xl font-medium">
+            Clear
+          </button>
+        </div>
+      </div>
+
+      <!-- Output -->
+      <div>
+        <label class="block text-sm font-medium text-zinc-400 mb-2">Hasil JSON (Copy &amp; Paste ke videos.json)</label>
+        <textarea id="output" rows="16" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl p-4 font-mono text-sm" readonly></textarea>
+        
+        <div class="mt-3 flex gap-3">
+          <button onclick="copyJSON()" 
+                  class="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-2xl font-semibold flex items-center justify-center gap-2">
+            <i class="fas fa-copy"></i>
+            <span>Copy JSON</span>
+          </button>
+          <button onclick="downloadJSON()" 
+                  class="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-2xl font-medium flex items-center justify-center gap-2">
+            <i class="fas fa-download"></i>
+            <span>Download</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8 text-sm text-zinc-400 bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
+      <strong>Cara pakai:</strong><br>
+      1. Paste judul di baris pertama<br>
+      2. Paste link embed di baris kedua<br>
+      3. Kosongkan 1 baris<br>
+      4. Ulangi untuk video berikutnya<br><br>
+      Tool ini otomatis mendeteksi IndoAV atau UserBokep dan membuat <code>direct</code> link.
+    </div>
+  </div>
+
+  <script>
+    let nextId = 100; // mulai dari 100 biar gak bentrok dengan yang sudah ada
+
+    function convertToJSON() {
+      const input = document.getElementById('input').value.trim();
+      if (!input) {
+        alert('Input masih kosong!');
+        return;
+      }
+
+      const lines = input.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      const videos = [];
+      let currentTitle = '';
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+
+        if (line.startsWith('http')) {
+          // Ini link
+          if (!currentTitle) {
+            alert('Format salah! Setiap link harus ada judul di atasnya.');
+            return;
+          }
+
+          const embed = line;
+          let source = 'UserBokep';
+          let direct = line.replace('/e/', '/d/');
+
+          if (line.includes('indoav.app')) {
+            source = 'IndoAV';
+          }
+
+          videos.push({
+            id: nextId++,
+            title: currentTitle,
+            embed: embed,
+            direct: direct,
+            source: source,
+            category: "Umum"   // bisa kamu ganti manual nanti
+          });
+
+          currentTitle = '';
+        } else {
+          // Ini judul
+          currentTitle = line;
+        }
+      }
+
+      if (videos.length === 0) {
+        alert('Tidak ada video yang berhasil dikonversi. Pastikan format judul + link bergantian.');
+        return;
+      }
+
+      const jsonOutput = JSON.stringify(videos, null, 2);
+      document.getElementById('output').value = jsonOutput;
+    }
+
+    function copyJSON() {
+      const output = document.getElementById('output');
+      if (!output.value) {
+        alert('Belum ada hasil JSON!');
+        return;
+      }
+      output.select();
+      document.execCommand('copy');
+      alert('JSON berhasil dicopy! Tinggal paste ke videos.json');
+    }
+
+    function downloadJSON() {
+      const output = document.getElementById('output').value;
+      if (!output) {
+        alert('Belum ada hasil JSON!');
+        return;
+      }
+      const blob = new Blob([output], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'new-videos.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function clearAll() {
+      document.getElementById('input').value = '';
+      document.getElementById('output').value = '';
+    }
+
+    // Contoh otomatis saat pertama buka
+    window.onload = function() {
+      const example = `Pacar Ku Jembutnya Lebat Nan Hitam Minta Croot MULUT
+https://tv1.userbokep.com/e/aqK2EypJOK1s
+
+ASU Desahanya Bjir Bikin Crooot Babiiii
+https://tv1.userbokep.com/e/RkD2mdd2AeYc
+
+Pramugari Viral Selingkuh Ngentod di Hotel
+https://tv1.userbokep.com/e/9QDHiciQ2Wl4`;
+      // document.getElementById('input').value = example; // uncomment kalau mau contoh muncul otomatis
+    };
+  </script>
+</body>
+</html>
